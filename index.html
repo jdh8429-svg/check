@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>바른글 교정기</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@300;400;600;700&family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #f5f0e8;
+  --bg2: #ede6d6;
+  --card: #faf7f2;
+  --border: #d4c9b0;
+  --border2: #c4b898;
+  --ink: #1e1a14;
+  --ink2: #5a4f3e;
+  --ink3: #9a8d7a;
+  --red: #b5321e;
+  --red-bg: #fdf2ef;
+  --red-border: #edc8bf;
+  --amber: #8a5e0a;
+  --amber-bg: #fdf6e8;
+  --amber-border: #e8d098;
+  --green: #2a6632;
+  --green-bg: #eef6ef;
+  --green-border: #b8d8bb;
+  --blue: #1a4a8a;
+  --blue-bg: #eff4fc;
+  --blue-border: #b8ccee;
+  --shadow: 0 2px 16px rgba(30,26,20,0.10);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Noto Sans KR', sans-serif;
+  background: var(--bg);
+  min-height: 100vh;
+  color: var(--ink);
+  padding: 0 0 60px;
+}
+
+header {
+  background: var(--card);
+  border-bottom: 1px solid var(--border);
+  padding: 18px 32px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  box-shadow: 0 1px 8px rgba(30,26,20,0.07);
+}
+.logo-text {
+  font-family: 'Noto Serif KR', serif;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--ink);
+  letter-spacing: -0.5px;
+}
+.logo-sub {
+  font-size: 12px;
+  color: var(--ink3);
+  margin-top: 2px;
+}
+.header-badge {
+  margin-left: auto;
+  font-size: 11px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  background: var(--green-bg);
+  color: var(--green);
+  border: 1px solid var(--green-border);
+  font-weight: 500;
+}
+
+.wrap { max-width: 920px; margin: 0 auto; padding: 26px 20px 0; }
+
+.two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+  margin-bottom: 18px;
+}
+@media (max-width: 680px) {
+  .two-col { grid-template-columns: 1fr; }
+  header { padding: 14px 16px; }
+  .logo-text { font-size: 17px; }
+}
+
+.panel {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+.panel-head {
+  padding: 11px 16px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  background: var(--bg2);
+}
+.panel-title { font-size: 13px; font-weight: 500; color: var(--ink); }
+.panel-count { margin-left: auto; font-size: 11px; color: var(--ink3); }
+.panel-body { padding: 14px 16px; }
+
+textarea {
+  width: 100%;
+  min-height: 260px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 13px;
+  font-family: 'Noto Serif KR', serif;
+  font-size: 14px;
+  line-height: 1.9;
+  color: var(--ink);
+  background: #fff;
+  resize: vertical;
+  outline: none;
+  transition: border-color 0.2s;
+}
+textarea:focus { border-color: var(--border2); }
+textarea::placeholder { color: #c0b8a5; font-family: 'Noto Sans KR', sans-serif; font-size: 13px; }
+
+.result-area {
+  min-height: 260px;
+  border: 1px solid var(--green-border);
+  border-radius: 6px;
+  padding: 13px;
+  font-family: 'Noto Serif KR', serif;
+  font-size: 14px;
+  line-height: 1.9;
+  color: var(--ink);
+  background: var(--green-bg);
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+.result-placeholder { color: var(--ink3); font-family: 'Noto Sans KR', sans-serif; font-size: 13px; }
+
+mark.spell {
+  background: rgba(181,50,30,0.12);
+  color: var(--red);
+  border-bottom: 2px solid var(--red);
+  border-radius: 2px 2px 0 0;
+  padding: 0 1px;
+  cursor: help;
+}
+mark.foreign {
+  background: rgba(138,94,10,0.10);
+  color: var(--amber);
+  border-bottom: 2px solid var(--amber);
+  border-radius: 2px 2px 0 0;
+  padding: 0 1px;
+  cursor: help;
+}
+mark.hanja {
+  background: rgba(26,74,138,0.09);
+  color: var(--blue);
+  border-bottom: 2px solid var(--blue);
+  border-radius: 2px 2px 0 0;
+  padding: 0 1px;
+  cursor: help;
+}
+
+.opts-panel {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+  margin-bottom: 18px;
+  overflow: hidden;
+}
+.opts-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  padding: 14px 16px;
+}
+@media (max-width: 680px) { .opts-grid { grid-template-columns: 1fr 1fr; } }
+
+.opt {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 10px 11px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  cursor: pointer;
+  background: #fff;
+  user-select: none;
+  transition: all 0.15s;
+}
+.opt.on { border-color: var(--ink2); background: var(--bg2); }
+.opt-chk {
+  width: 16px; height: 16px;
+  border-radius: 3px;
+  border: 1.5px solid var(--border2);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; margin-top: 1px;
+  font-size: 10px; color: transparent;
+  transition: all 0.15s;
+}
+.opt.on .opt-chk { background: var(--ink); border-color: var(--ink); color: #faf7f2; }
+.opt-label { font-size: 12px; font-weight: 500; color: var(--ink); }
+.opt-sub { font-size: 10px; color: var(--ink3); margin-top: 1px; }
+
+.btn-row { display: flex; gap: 8px; margin-top: 12px; }
+.btn-primary {
+  flex: 1; padding: 11px;
+  background: var(--ink); color: #faf7f2;
+  border: none; border-radius: 6px;
+  font-family: 'Noto Sans KR', sans-serif;
+  font-size: 13px; font-weight: 500;
+  cursor: pointer; transition: all 0.15s;
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+}
+.btn-primary:hover { background: #2e2820; }
+.btn-primary:active { transform: scale(0.98); }
+.btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+.btn-sec {
+  padding: 11px 16px;
+  background: transparent; color: var(--ink2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-family: 'Noto Sans KR', sans-serif;
+  font-size: 13px; cursor: pointer; transition: all 0.15s;
+}
+.btn-sec:hover { background: var(--bg2); }
+.btn-copy {
+  padding: 6px 12px;
+  background: #fff; border: 1px solid var(--border);
+  border-radius: 5px; font-size: 11px; color: var(--ink2);
+  cursor: pointer; font-family: 'Noto Sans KR', sans-serif;
+  transition: all 0.15s; display: none;
+}
+.btn-copy:hover { background: var(--bg2); }
+
+.loading-row {
+  display: none; align-items: center; gap: 8px;
+  padding: 14px 0; color: var(--ink3); font-size: 12px;
+}
+.loading-row.show { display: flex; }
+.dot { width: 6px; height: 6px; background: var(--ink3); border-radius: 50%; animation: blink 1.2s ease-in-out infinite; }
+.dot:nth-child(2) { animation-delay: 0.2s; }
+.dot:nth-child(3) { animation-delay: 0.4s; }
+@keyframes blink { 0%,80%,100%{opacity:.2;transform:translateY(0)} 40%{opacity:1;transform:translateY(-4px)} }
+
+.err { display: none; margin-top: 10px; padding: 10px 12px; background: var(--red-bg); border: 1px solid var(--red-border); border-radius: 6px; color: var(--red); font-size: 12px; }
+.err.show { display: block; }
+
+.stat-row { display: none; gap: 7px; margin-top: 10px; flex-wrap: wrap; }
+.stat-row.show { display: flex; }
+.chip { font-size: 11px; padding: 3px 9px; border-radius: 20px; font-weight: 500; }
+.chip.spell { background: var(--red-bg); color: var(--red); border: 1px solid var(--red-border); }
+.chip.foreign { background: var(--amber-bg); color: var(--amber); border: 1px solid var(--amber-border); }
+.chip.hanja { background: var(--blue-bg); color: var(--blue); border: 1px solid var(--blue-border); }
+
+.changes-panel {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  margin-bottom: 18px;
+  display: none;
+}
+.changes-panel.show { display: block; }
+.tabs { display: flex; border-bottom: 1px solid var(--border); background: var(--bg2); }
+.tab {
+  padding: 10px 18px; font-size: 12px; cursor: pointer;
+  color: var(--ink3); border: none; background: none;
+  border-bottom: 2px solid transparent; margin-bottom: -1px;
+  font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
+}
+.tab.on { color: var(--ink); border-bottom-color: var(--ink); font-weight: 500; }
+.changes-body { padding: 14px 16px; }
+.changes-list { display: flex; flex-direction: column; gap: 8px; }
+.ci { display: flex; align-items: flex-start; gap: 10px; padding: 10px 12px; border-radius: 6px; border: 1px solid; }
+.ci.spell { background: var(--red-bg); border-color: var(--red-border); }
+.ci.foreign { background: var(--amber-bg); border-color: var(--amber-border); }
+.ci.hanja { background: var(--blue-bg); border-color: var(--blue-border); }
+.ci-badge { font-size: 9px; font-weight: 700; padding: 2px 6px; border-radius: 20px; color: #fff; flex-shrink: 0; margin-top: 2px; }
+.ci.spell .ci-badge { background: var(--red); }
+.ci.foreign .ci-badge { background: var(--amber); }
+.ci.hanja .ci-badge { background: var(--blue); }
+.ci-words { display: flex; align-items: center; gap: 6px; font-size: 13px; margin-bottom: 2px; }
+.ci-before { color: var(--ink3); text-decoration: line-through; }
+.ci-after { font-weight: 500; color: var(--ink); }
+.ci-arrow { color: var(--ink3); font-size: 11px; }
+.ci-reason { font-size: 11px; color: var(--ink3); }
+.empty { text-align: center; padding: 26px; color: var(--ink3); font-size: 13px; }
+
+footer {
+  text-align: center; padding: 22px;
+  font-size: 11px; color: var(--ink3); margin-top: 6px;
+  border-top: 1px solid var(--border);
+}
+footer a { color: var(--ink3); text-decoration: none; }
+footer a:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <div class="logo-text">바른글 교정기</div>
+    <div class="logo-sub">기안문·공문서 맞춤법 교정 및 순우리말 변환</div>
+  </div>
+  <span class="header-badge">✓ 무료 · 로그인 불필요</span>
+</header>
+
+<div class="wrap">
+
+  <!-- 옵션 -->
+  <div class="opts-panel">
+    <div class="panel-head">
+      <span style="font-size:13px;">⚙️</span>
+      <span class="panel-title">교정 옵션</span>
+    </div>
+    <div class="opts-grid">
+      <div class="opt on" data-key="spell" onclick="toggleOpt(this)">
+        <div class="opt-chk">✓</div>
+        <div>
+          <div class="opt-label">맞춤법·띄어쓰기</div>
+          <div class="opt-sub">부산대 검사기 연동</div>
+        </div>
+      </div>
+      <div class="opt on" data-key="foreign" onclick="toggleOpt(this)">
+        <div class="opt-chk">✓</div>
+        <div>
+          <div class="opt-label">외래어 → 순우리말</div>
+          <div class="opt-sub">국립국어원 다듬은말</div>
+        </div>
+      </div>
+      <div class="opt on" data-key="hanja" onclick="toggleOpt(this)">
+        <div class="opt-chk">✓</div>
+        <div>
+          <div class="opt-label">한자어 → 순우리말</div>
+          <div class="opt-sub">공문서 관용 한자어</div>
+        </div>
+      </div>
+      <div class="opt on" data-key="highlight" onclick="toggleOpt(this)">
+        <div class="opt-chk">✓</div>
+        <div>
+          <div class="opt-label">변경 강조 표시</div>
+          <div class="opt-sub">바뀐 부분 색상 표시</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 입력 / 결과 -->
+  <div class="two-col">
+    <div class="panel">
+      <div class="panel-head">
+        <span style="font-size:12px;">✏️</span>
+        <span class="panel-title">기안문 입력</span>
+        <span class="panel-count" id="inputCount">0자</span>
+      </div>
+      <div class="panel-body">
+        <textarea id="inputText"
+          placeholder="교정할 기안문 본문을 여기에 붙여넣으세요.
+
+예) 금번 프로젝트 착수 미팅을 통해 스케줄을 컨펌하고, 관련 부서와의 코디네이션을 강화할 예정입니다. 첨부된 파일을 리뷰하신 후 피드백 부탁드립니다."
+          oninput="onInput()"></textarea>
+        <div class="btn-row">
+          <button class="btn-primary" id="submitBtn" onclick="doCorrect()">✦ 교정 시작</button>
+          <button class="btn-sec" onclick="clearAll()">초기화</button>
+        </div>
+        <div class="err" id="errBox"></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head">
+        <span style="font-size:12px;">✓</span>
+        <span class="panel-title">교정 결과</span>
+        <button class="btn-copy" id="copyBtn" onclick="copyResult()">복사</button>
+      </div>
+      <div class="panel-body">
+        <div class="loading-row" id="loadingRow">
+          <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+          <span id="loadingMsg">교정 중…</span>
+        </div>
+        <div class="result-area" id="resultArea">
+          <span class="result-placeholder">교정 결과가 여기에 표시됩니다</span>
+        </div>
+        <div class="stat-row" id="statRow">
+          <span class="chip spell" id="statSpell"></span>
+          <span class="chip foreign" id="statForeign"></span>
+          <span class="chip hanja" id="statHanja"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 변경 목록 -->
+  <div class="changes-panel" id="changesPanel">
+    <div class="tabs">
+      <button class="tab on" onclick="switchTab('all', this)">전체 변경 목록</button>
+      <button class="tab" onclick="switchTab('spell', this)">맞춤법</button>
+      <button class="tab" onclick="switchTab('word', this)">외래어·한자어</button>
+    </div>
+    <div class="changes-body">
+      <div class="changes-list" id="changesList"></div>
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  맞춤법: <a href="https://speller.cs.pusan.ac.kr" target="_blank">부산대학교 한국어 맞춤법/문법 검사기</a> &nbsp;·&nbsp;
+  외래어·한자어: <a href="https://www.korean.go.kr" target="_blank">국립국어원</a> 다듬은말 기준 2025
+</footer>
+
+<script>
+// ── 사전 ─────────────────────────────────────────────────────────────────
+const FOREIGN_DICT = [
+  ['스케줄','일정'],['스케쥴','일정'],['미팅','회의'],['컨펌','확인'],
+  ['피드백','의견'],['리뷰','검토'],['코디네이션','조율'],['매니저','담당자'],
+  ['리포트','보고서'],['프레젠테이션','발표자료'],['어젠다','안건'],
+  ['콘텐츠','내용'],['컨텐츠','내용'],['플랜','계획'],
+  ['타임라인','일정표'],['데드라인','마감일'],
+  ['워크숍','연수'],['세미나','강연회'],['컨퍼런스','학술대회'],
+  ['프로세스','절차'],['인프라','기반시설'],
+  ['매뉴얼','지침서'],['가이드라인','지침'],['가이드','안내'],
+  ['아웃소싱','외주'],['컨설팅','자문'],['컨설턴트','자문위원'],
+  ['리더십','지도력'],['팀워크','협동'],['팀원','구성원'],
+  ['프로젝트','사업'],['태스크','과제'],['이슈','문제'],['리스크','위험'],
+  ['모니터링','점검'],['체크리스트','점검표'],
+  ['업그레이드','개선'],['업데이트','갱신'],
+  ['서포트','지원'],['홈페이지','누리집'],['웹사이트','누리집'],
+  ['이메일','전자우편'],['e메일','전자우편'],
+  ['데이터','자료'],['데이타','자료'],
+  ['하이브리드','혼합형'],['앱','응용 프로그램'],
+  ['커리큘럼','교육과정'],['멘토링','지도'],['인턴','실습생'],
+  ['인센티브','성과급'],['보너스','상여금'],
+  ['바우처','이용권'],['캠페인','홍보 활동'],['이벤트','행사'],
+  ['볼런티어','자원봉사'],['클레임','민원'],['컴플레인','불만'],
+  ['브리핑','보고'],['인터뷰','면담'],['프로필','인적사항'],
+  ['코디네이터','담당자'],['네트워킹','교류'],['커뮤니티','공동체'],
+  ['커뮤니케이션','소통'],['액션플랜','실행 계획'],['로드맵','추진 계획'],
+  ['벤치마킹','우수사례 참고'],['케이스스터디','사례연구'],
+  ['포럼','토론회'],['패널','토론자'],['허브','중심지'],
+  ['인큐베이터','창업보육센터'],['오피스','사무실'],
+  ['레포트','보고서'],['써밋','정상회의'],
+];
+
+const HANJA_DICT = [
+  ['금번','이번'],['차기','다음'],['익일','다음 날'],['금일','오늘'],
+  ['명일','내일'],['작일','어제'],['금주','이번 주'],['차주','다음 주'],
+  ['전술한','앞서 말한'],['상기한','앞서 말한'],
+  ['착수','시작'],['완료','마침'],['종료','끝'],
+  ['개시','시작'],['개최','열기'],
+  ['시행','실시'],['추진','진행'],['수행','이행'],
+  ['통보','알림'],['통지','알림'],['고지','알림'],
+  ['요청','부탁'],['건의','의견 제시'],
+  ['첨부','붙임'],['별첨','붙임'],['별지','붙임 서류'],
+  ['기재','기입'],['명기','밝혀 적음'],['열거','나열'],
+  ['현황','현재 상태'],['실태','실제 상태'],
+  ['방안','방법'],['방책','방법'],['대안','다른 방법'],
+  ['협조','협력'],['검토','살펴봄'],
+  ['제출','내기'],['취합','모음'],['수합','모음'],['집계','합산'],
+  ['파악','알아봄'],['점검','살핌'],
+  ['귀교','귀 학교'],['귀청','귀 청'],['귀원','귀 원'],
+];
+
+const opts = { spell: true, foreign: true, hanja: true, highlight: true };
+let allChanges = [];
+let currentTab = 'all';
+
+function toggleOpt(el) {
+  const k = el.dataset.key;
+  opts[k] = !opts[k];
+  el.classList.toggle('on', opts[k]);
+}
+
+function onInput() {
+  document.getElementById('inputCount').textContent =
+    document.getElementById('inputText').value.length + '자';
+}
+
+function clearAll() {
+  document.getElementById('inputText').value = '';
+  document.getElementById('inputCount').textContent = '0자';
+  document.getElementById('resultArea').innerHTML =
+    '<span class="result-placeholder">교정 결과가 여기에 표시됩니다</span>';
+  document.getElementById('changesPanel').classList.remove('show');
+  document.getElementById('statRow').classList.remove('show');
+  document.getElementById('copyBtn').style.display = 'none';
+  document.getElementById('errBox').classList.remove('show');
+  allChanges = [];
+}
+
+function showErr(msg) {
+  const e = document.getElementById('errBox');
+  e.textContent = msg;
+  e.classList.add('show');
+}
+
+function esc(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function escReg(s) {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function stripHtml(html) {
+  const d = document.createElement('div');
+  d.innerHTML = html;
+  return d.textContent || '';
+}
+
+// 외래어·한자어 변환
+function applyWordDict(text) {
+  const changes = [];
+  let result = text;
+  const dict = [];
+  if (opts.foreign) dict.push(...FOREIGN_DICT.map(d => ({...Object.fromEntries([['from',d[0]],['to',d[1]]]), type:'foreign'})));
+  if (opts.hanja)   dict.push(...HANJA_DICT.map(d => ({...Object.fromEntries([['from',d[0]],['to',d[1]]]), type:'hanja'})));
+
+  dict.sort((a,b) => b.from.length - a.from.length);
+  const used = new Set();
+
+  for (const {from, to, type} of dict) {
+    if (used.has(from)) continue;
+    const regex = new RegExp(escReg(from), 'g');
+    if (regex.test(result)) {
+      changes.push({
+        type,
+        before: from,
+        after: to,
+        reason: type === 'foreign'
+          ? '외래어를 순우리말로 변환 (국립국어원 다듬은말)'
+          : '한자어를 순우리말로 변환 (공문서 관용어)'
+      });
+      result = result.replace(new RegExp(escReg(from), 'g'), to);
+      used.add(from);
+    }
+  }
+  return { result, changes };
+}
+
+// 부산대 맞춤법 검사 (Netlify 프록시 경유)
+async function checkSpell(text) {
+  const res = await fetch('/api/spellcheck', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ text }),
+  });
+  if (!res.ok) throw new Error('맞춤법 서버 오류 ' + res.status);
+  const data = await res.json();
+  if (data.error) throw new Error(data.error);
+
+  const changes = [];
+  let corrected = text;
+
+  if (data.errInfo) {
+    for (const err of data.errInfo) {
+      if (!err.candWord || err.orgStr === err.candWord) continue;
+      const best = err.candWord.split('|')[0].trim();
+      if (best && best !== err.orgStr) {
+        changes.push({
+          type: 'spell',
+          before: err.orgStr,
+          after: best,
+          reason: err.help ? stripHtml(err.help).substring(0, 70) : '맞춤법 오류'
+        });
+      }
+    }
+    if (data.results) {
+      corrected = data.results.map(r => r.str).join('');
+    } else {
+      for (const ch of changes) {
+        corrected = corrected.replace(new RegExp(escReg(ch.before), 'g'), ch.after);
+      }
+    }
+  }
+  return { corrected, changes };
+}
+
+async function doCorrect() {
+  const text = document.getElementById('inputText').value.trim();
+  if (!text) { showErr('교정할 내용을 입력해 주세요.'); return; }
+  if (!Object.values(opts).some(Boolean)) { showErr('옵션을 하나 이상 선택해 주세요.'); return; }
+
+  document.getElementById('errBox').classList.remove('show');
+  document.getElementById('changesPanel').classList.remove('show');
+  document.getElementById('loadingRow').classList.add('show');
+  document.getElementById('submitBtn').disabled = true;
+  document.getElementById('copyBtn').style.display = 'none';
+  document.getElementById('statRow').classList.remove('show');
+  document.getElementById('resultArea').innerHTML = '';
+  allChanges = [];
+
+  let workingText = text;
+  let wordChanges = [];
+  let spellChanges = [];
+
+  // 1단계: 외래어·한자어
+  if (opts.foreign || opts.hanja) {
+    document.getElementById('loadingMsg').textContent = '외래어·한자어 변환 중…';
+    const r = applyWordDict(workingText);
+    workingText = r.result;
+    wordChanges = r.changes;
+  }
+
+  // 2단계: 맞춤법
+  if (opts.spell) {
+    document.getElementById('loadingMsg').textContent = '맞춤법 검사 중…';
+    try {
+      const r = await checkSpell(workingText);
+      workingText = r.corrected;
+      spellChanges = r.changes;
+    } catch(e) {
+      console.warn('맞춤법 오류:', e.message);
+    }
+  }
+
+  allChanges = [...spellChanges, ...wordChanges];
+
+  document.getElementById('loadingRow').classList.remove('show');
+  document.getElementById('submitBtn').disabled = false;
+
+  // 결과 렌더
+  renderResult(workingText, allChanges);
+  renderChanges(allChanges, currentTab);
+
+  document.getElementById('changesPanel').classList.add('show');
+  document.getElementById('copyBtn').style.display = 'block';
+
+  // 통계
+  const sc = allChanges.filter(c=>c.type==='spell').length;
+  const fc = allChanges.filter(c=>c.type==='foreign').length;
+  const hc = allChanges.filter(c=>c.type==='hanja').length;
+  const ss = document.getElementById('statSpell');
+  const sf = document.getElementById('statForeign');
+  const sh = document.getElementById('statHanja');
+  ss.textContent = sc ? `맞춤법 ${sc}건` : '';
+  sf.textContent = fc ? `외래어 ${fc}건` : '';
+  sh.textContent = hc ? `한자어 ${hc}건` : '';
+  ss.style.display = sc ? 'inline' : 'none';
+  sf.style.display = fc ? 'inline' : 'none';
+  sh.style.display = hc ? 'inline' : 'none';
+  if (sc+fc+hc > 0) document.getElementById('statRow').classList.add('show');
+}
+
+function renderResult(text, changes) {
+  const area = document.getElementById('resultArea');
+  if (!opts.highlight || !changes.length) {
+    area.textContent = text;
+    return;
+  }
+  let html = esc(text);
+  for (const ch of changes) {
+    const label = ch.type==='spell' ? '맞춤법' : ch.type==='foreign' ? '외래어 변환' : '한자어 변환';
+    html = html.replace(
+      new RegExp(escReg(esc(ch.after)), 'g'),
+      `<mark class="${ch.type}" title="${label}: ${esc(ch.before)} → ${esc(ch.after)}">${esc(ch.after)}</mark>`
+    );
+  }
+  area.innerHTML = html;
+}
+
+function renderChanges(changes, tab) {
+  const list = document.getElementById('changesList');
+  list.innerHTML = '';
+  let filtered = changes;
+  if (tab === 'spell') filtered = changes.filter(c => c.type === 'spell');
+  if (tab === 'word')  filtered = changes.filter(c => c.type !== 'spell');
+  if (!filtered.length) {
+    list.innerHTML = '<div class="empty">해당 항목의 변경 내용이 없습니다.</div>';
+    return;
+  }
+  for (const c of filtered) {
+    const label = c.type==='spell'?'맞춤법':c.type==='foreign'?'외래어':'한자어';
+    const div = document.createElement('div');
+    div.className = 'ci ' + c.type;
+    div.innerHTML = `
+      <span class="ci-badge">${label}</span>
+      <div>
+        <div class="ci-words">
+          <span class="ci-before">${esc(c.before)}</span>
+          <span class="ci-arrow">→</span>
+          <span class="ci-after">${esc(c.after)}</span>
+        </div>
+        <div class="ci-reason">${esc(c.reason)}</div>
+      </div>`;
+    list.appendChild(div);
+  }
+}
+
+function switchTab(name, btn) {
+  currentTab = name;
+  document.querySelectorAll('.tab').forEach(b => b.classList.remove('on'));
+  btn.classList.add('on');
+  renderChanges(allChanges, name);
+}
+
+async function copyResult() {
+  const t = document.getElementById('resultArea').textContent;
+  try {
+    await navigator.clipboard.writeText(t);
+    const b = document.getElementById('copyBtn');
+    b.textContent = '복사됨!';
+    setTimeout(() => b.textContent = '복사', 1600);
+  } catch(e) {}
+}
+</script>
+</body>
+</html>
