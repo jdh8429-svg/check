@@ -19,25 +19,30 @@ exports.handler = async function(event, context) {
     const { text } = JSON.parse(event.body);
     if (!text) return { statusCode: 400, body: 'text is required' };
 
-    const params = new URLSearchParams();
-    params.append('text', text);
-    params.append('user_dic', '');
-    params.append('pbdic', '0');
+    const response = await fetch('https://speller.town', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text }),
+    });
 
-    const response = await fetch(
-      'https://nara-speller.co.kr/speller/results',
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: params.toString(),
-      }
-    );
-
-    if (!response.ok) {
-      throw new Error('맞춤법 서버 오류: ' + response.status);
-    }
+    if (!response.ok) throw new Error('맞춤법 서버 오류: ' + response.status);
 
     const data = await response.json();
+
+    // suggestions 형식을 기존 형식으로 변환
+    const errInfo = (data.suggestions || []).map(s => ({
+      orgStr: s.text,
+      candWord: (s.candidates || []).join('|'),
+      help: s.description || '맞춤법 오류',
+    }));
+
+    let corrected = text;
+    for (const err of errInfo) {
+      if (err.candWord) {
+        const best = err.candWord.split('|')[0].trim();
+        if (best) corrected = corrected.replace(err.orgStr, best);
+      }
+    }
 
     return {
       statusCode: 200,
@@ -45,7 +50,7 @@ exports.handler = async function(event, context) {
         'Content-Type': 'application/json',
         'Access-Control-Allow-Origin': '*',
       },
-      body: JSON.stringify(data),
+      body: JSON.stringify({ errInfo, corrected }),
     };
   } catch (err) {
     return {
