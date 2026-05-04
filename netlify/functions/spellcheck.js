@@ -25,7 +25,7 @@ exports.handler = async function(event, context) {
     params.append('pbdic', '0');
 
     const response = await fetch(
-      'https://speller.cs.pusan.ac.kr/services/rest/correct/reloadDic',
+      'https://nara-speller.co.kr/speller/results',
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
