@@ -552,30 +552,26 @@ async function checkSpell(text) {
   const data = await res.json();
   if (data.error) throw new Error(data.error);
 
-  const changes = [];
-  let corrected = text;
+  const corrected = data.corrected || text;
 
-  if (data.errInfo) {
-    for (const err of data.errInfo) {
-      if (!err.candWord || err.orgStr === err.candWord) continue;
-      const best = err.candWord.split('|')[0].trim();
-      if (best && best !== err.orgStr) {
+  // 원문과 교정문을 단어 단위로 비교해서 변경사항 추출
+  const changes = [];
+  if (corrected !== text) {
+    const origWords = text.split(/\s+/);
+    const corrWords = corrected.split(/\s+/);
+    const len = Math.min(origWords.length, corrWords.length);
+    for (let i = 0; i < len; i++) {
+      if (origWords[i] !== corrWords[i] && origWords[i] && corrWords[i]) {
         changes.push({
           type: 'spell',
-          before: err.orgStr,
-          after: best,
-          reason: err.help ? stripHtml(err.help).substring(0, 70) : '맞춤법 오류'
+          before: origWords[i],
+          after: corrWords[i],
+          reason: '맞춤법·띄어쓰기 오류 (네이버 맞춤법 검사기)',
         });
       }
     }
-    if (data.results) {
-      corrected = data.results.map(r => r.str).join('');
-    } else {
-      for (const ch of changes) {
-        corrected = corrected.replace(new RegExp(escReg(ch.before), 'g'), ch.after);
-      }
-    }
   }
+
   return { corrected, changes };
 }
 
